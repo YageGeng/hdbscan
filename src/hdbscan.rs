@@ -107,7 +107,7 @@ impl<'a, T: Float> Hdbscan<'a, T> {
     ///
     /// # Returns
     /// * A result that, if successful, contains a list of cluster labels, with a length equal to
-    ///   the numbe of samples passed to the constructor. Positive integers mean a data point
+    ///   the number of samples passed to the constructor. Positive integers mean a data point
     ///   belongs to a cluster of that label. -1 labels mean that a data point is noise and does
     ///   not belong to any cluster. An Error will be returned if the dimensionality of the input
     ///   vectors are mismatched, if any vector contains non-finite coordinates, or if the passed

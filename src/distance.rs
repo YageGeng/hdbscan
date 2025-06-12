@@ -24,6 +24,10 @@ pub enum DistanceMetric {
     /// Pre-calculated distance metric between the points is provided as `data` parameter
     /// to the HDBSCAN constructor
     Precalculated,
+    /// Measures the cosine of the angle between two vectors.Add commentMore actions
+    /// Range is [0, 2] for non-negative inputs, where 0 means identical direction, 2 means opposite directions.
+    /// Ignores magnitude, only considers orientation.
+    Cosine,
 }
 
 impl DistanceMetric {
@@ -34,6 +38,7 @@ impl DistanceMetric {
             Self::Euclidean => euclidean_distance(a, b),
             Self::Haversine => haversine_distance(a, b),
             Self::Manhattan => manhattan_distance(a, b),
+            Self::Cosine => cosine_distance(a, b),
             Self::Precalculated => panic!("Precalculated distance metric should not be used here"),
         }
     }
@@ -46,6 +51,7 @@ pub(crate) fn get_dist_func<T: Float>(metric: &DistanceMetric) -> impl Fn(&[T], 
         DistanceMetric::Euclidean => euclidean_distance,
         DistanceMetric::Haversine => haversine_distance,
         DistanceMetric::Manhattan => manhattan_distance,
+        DistanceMetric::Cosine => cosine_distance,
         DistanceMetric::Precalculated => {
             panic!("Precalculated distance metric should not be used here")
         }
@@ -116,6 +122,28 @@ pub(crate) fn cylindrical_distance<T: Float>(a: &[T], b: &[T]) -> T {
     let vertical_component = (z2 - z1) * (z2 - z1);
 
     (radial_component + vertical_component).sqrt()
+}
+
+pub(crate) fn cosine_distance<T: Float>(a: &[T], b: &[T]) -> T {
+    assert_inputs(a, b);
+
+    let dot_product = a
+        .iter()
+        .zip(b.iter())
+        .map(|(x, y)| ((*x) * (*y)))
+        .fold(T::zero(), std::ops::Add::add);
+    let magnitude_a = a
+        .iter()
+        .map(|&x| x.powi(2))
+        .fold(T::zero(), std::ops::Add::add)
+        .sqrt();
+    let magnitude_b = b
+        .iter()
+        .map(|&x| x.powi(2))
+        .fold(T::zero(), std::ops::Add::add)
+        .sqrt();
+
+    T::one() - (dot_product / (magnitude_a * magnitude_b))
 }
 
 fn assert_inputs<T: Float>(a: &[T], b: &[T]) {
